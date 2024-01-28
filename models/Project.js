@@ -1,3 +1,4 @@
+const { Types } = require('mongoose')
 const mongoose = require('../db/conn')
 const {Schema} = mongoose
 
@@ -24,6 +25,11 @@ const Project = mongoose.model(
             type: String,
             required: true
         },
+        projectSkills: [{
+            type: Schema.Types.ObjectId,
+            required: true,
+            ref: 'Skill'
+        }],
         user: Object
         
     },

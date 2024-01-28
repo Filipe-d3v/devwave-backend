@@ -19,7 +19,7 @@ const fileStorage = multer.diskStorage({
 })
 
 const fileUpload = multer({ storage: fileStorage, fileFilter(req, file, cb) {
-    if(!file.originalname.match(/\.(pdf|jpg)$/)) {
+    if(!file.originalname.match(/\.(pdf)$/)) {
         return cb(new Error('Apenas Arquivos no formato PDF são permitidos!'))
     }
     cb(undefined, true)

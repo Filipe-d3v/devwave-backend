@@ -43,7 +43,7 @@ const storageTypes = {
 }
 
 const imageUploadLocal = multer({ storage: storageTypes.local, fileFilter(req, file, cb) {
-    if(!file.originalname.match(/\.(png|jpg|jpeg)$/)) {
+    if(!file.originalname.match(/\.(png|PNG|jpg|jpeg)$/)) {
         return cb(new Error('Apenas imagens JPG, PNG, JPEG são permitidas!'))
     }
     cb(undefined, true)

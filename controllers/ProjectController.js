@@ -3,61 +3,71 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const getToken = require('../helpers/get-token')
-const getUserByToken = require('../helpers/get-user-by-token')
+const getUserByToken = require('../helpers/get-user-by-token');
 
 module.exports = class ProjectController {
   static async create(req, res) {
-    const { name, link, skills, desc } = req.body
+  const { name, link, projectSkills, desc } = req.body;
 
-    if (!req.file) {
-      res.status(422).json({ message: 'Escola uma foto para o projeto!' })
-      return
-    }
-
-    if (!desc) {
-      res.status(422).json({message: 'Por favor insira uma descrição para o projeto'})
-      return
-    }
-
-    const image = req.file.filename
-
-    if (!name) {
-      res.status(422).json({ message: 'Dê ao projeto um nome!' })
-      return
-    }
-
-    var currentUser
-    const token = getToken(req)
-    const decoded = jwt.verify(token, 'secret')
-
-    currentUser = await User.findById(decoded.id)
-
-    const project = new Project({
-      name: name,
-      link: link,
-      image: image,
-      desc: desc,
-      skills: skills,
-      user: {
-        _id: currentUser._id,
-        name: currentUser.name,
-        surname: currentUser.surname,
-        email: currentUser.email,
-        image: currentUser.image,
-        gender: currentUser.gender,
-        phone: currentUser.phone
-      },
-    })
-    try {
-
-      const newProject = await project.save()
-      const projectUser = await Project.findById(project._id).populate('user', ['name', 'surname', 'email', 'image'])
-      res.status(200).json({ message: 'Projeto postado!', newProject, project: projectUser })
-    } catch (error) {
-      res.status(500).json({ message: error })
-      console.log(error)
-    }
+  if (!req.file) {
+    res.status(422).json({ message: 'Escolha uma foto para o projeto!' });
+    return;
   }
+
+  if (!desc) {
+    res.status(422).json({ message: 'Por favor, insira uma descrição para o projeto' });
+    return;
+  }
+
+  const image = req.file.filename;
+
+  if (!name) {
+    res.status(422).json({ message: 'Dê ao projeto um nome!' });
+    return;
+  }
+
+  if (!projectSkills) {
+    res.status(422).json({ message: 'Informe pelo menos uma habilidade usada no projeto.' });
+    return;
+  }
+
+
+  var currentUser;
+  const token = getToken(req);
+  const decoded = jwt.verify(token, 'secret');
+
+  currentUser = await User.findById(decoded.id);
+
+  const parsedProjectSkills = JSON.parse(projectSkills);
+
+  const project = new Project({
+    name: name,
+    link: link,
+    image: image,
+    desc: desc,
+    projectSkills: parsedProjectSkills,
+    user: {
+      _id: currentUser._id,
+      name: currentUser.name,
+      surname: currentUser.surname,
+      email: currentUser.email,
+      image: currentUser.image,
+      gender: currentUser.gender,
+      phone: currentUser.phone,
+    },
+  });
+
+  try {
+    
+    const newProject = await project.save();
+    const projectUser = await Project.findById(newProject._id).populate('user', ['name', 'surname', 'email', 'image']);
+    res.status(200).json({ message: 'Projeto postado!', newProject, project: projectUser });
+  } catch (error) {
+    res.status(500).json({ message: error });
+    console.log(error);
+  }
+}
+
 
   static async addDoc(req, res) {
     const id = req.params.id
@@ -131,7 +141,7 @@ module.exports = class ProjectController {
 
     user = await User.findById(decoded.id)
 
-    const projects = await Project.find({ 'user._id': user._id }).sort('-createdAt')
+    const projects = await Project.find({ 'user._id': user._id }).populate('projectSkills').sort('-createdAt')
 
     res.status(200).json({ projects })
   }
@@ -139,7 +149,7 @@ module.exports = class ProjectController {
   static async getProjectById(req, res) {
     const id = req.params.id
 
-    const project = await Project.findById(id)
+    const project = await Project.findById(id).populate('projectSkills')
 
     if (!project) {
       res.status(400).json({ message: 'Projeto não encontrado!' })
