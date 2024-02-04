@@ -129,7 +129,7 @@ module.exports = class ProjectController {
 
   static async getAll(req, res) {
 
-    const projects = await Project.find().sort('-createdAt')
+    const projects = await Project.find().populate('projectSkills').sort('-createdAt')
     res.status(200).json({ projects: projects, })
   }
 
@@ -158,4 +158,5 @@ module.exports = class ProjectController {
 
     res.status(200).json({ project })
   }
+
 } 
